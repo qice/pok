@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-cn">
+	<head>
+		<meta charset=utf-8 />
+		<title>ddz</title>
+
+		<style type="text/css">
+			#desktop{ background: #000000 }
+		</style>
+	</head>
+	
+	<body>
+		<canvas id="desktop"></canvas>
+	</body>
+	<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+	<script src="release/poker.min.js"></script>
+	<script src="v.js"></script>
+	<script type="text/javascript">
+		var w = window.outerWidth;
+		var h = window.outerHeight;
+
+	window.onload = function(){
+		var canvas = document.getElementById('desktop');
+		canvas.width = w;
+		canvas.height = h;
+
+		canvas = canvas.getContext('2d');
+
+		pokerList = [
+			['A', 's'], ['2', 's'], ['3', 's'], ['4', 's'], ['5', 's'], 
+			['6', 'd'], ['7', 'd'], ['8', 'd'], ['9', 'd'], ['10','d'], 
+			['J', 'd'], ['Q', 'd'], ['K', 'd'], ['O', 's'], ['O', 'h'], 
+			['A', 'd'], ['A', 'h']
+		];
+		
+		v.init(canvas, pokerList);
+	}
+		
+	</script>
+</html>		
