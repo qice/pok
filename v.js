@@ -17,7 +17,9 @@ var v = {
 
 	img: {},
 
-	init : function (canvas, list) {
+	ov: '',
+
+	init : function (canvas, ov) {
 		var that = this;
 		this._w = canvas.canvas.offsetWidth;
 		this._h = canvas.canvas.offsetHeight;
@@ -25,25 +27,29 @@ var v = {
 		this._y = this._h - this._s - this._x;
 
 		this.canvas = canvas;
-		this.poker_list.list = list;
+		this.poker_list = ov.p.poker_list;
+		this.img = res.img;
+		this.ov = ov;
 
-		// 载入图片资源 
-		var img = {cp: 'cp.png', bc: 'bc.png'};
-		var j = 0;
-		var l = Object.keys(img).length;
-		for ( i in img ) {
-			this.img[i] = {dom: {}, x: 0, y: 0};
-			this.img[i].dom = new Image();
+		// // 载入图片资源 
+		// var img = {cp: 'cp.png', bc: 'bc.png'};
+		// var j = 0;
+		// var l = Object.keys(img).length;
+		// for ( i in img ) {
+		// 	this.img[i] = {dom: {}, x: 0, y: 0};
+		// 	this.img[i].dom = new Image();
 
- 			this.img[i].dom.onload = function(){
- 				j++;
- 				if ( j == l ) {
- 					that.show();
- 				}
- 			};
+ 	// 		this.img[i].dom.onload = function(){
+ 	// 			j++;
+ 	// 			if ( j == l ) {
+ 	// 				that.show();
+ 	// 			}
+ 	// 		};
 
- 			this.img[i].dom.src = img[i];
-		}
+ 	// 		this.img[i].dom.src = img[i];
+		// }
+
+		this.show();
 	},
 
 	show : function(){
@@ -125,10 +131,16 @@ var v = {
 
 	reshow: function (){
 		this.canvas.clearRect(0,0, this._w, this._h);  
+		// 显示 桌面
+		this.canvas.drawImage(this.img.dt.dom, 0, 0, this.canvas.canvas.width, this.canvas.canvas.height);
 
 		this.p1();
 
 		this.btnshow();
+
+		this.showp();
+		this.showp1();
+		this.showp2();
 	},
 
 	// 按钮显示 
@@ -143,6 +155,109 @@ var v = {
 		img.bc.x = this._w/2 - gap - img.bc.dom.width;
 		img.bc.y = this._y - gap - img.bc.dom.height;
 		this.canvas.drawImage(img.bc.dom, img.bc.x, img.bc.y);
+	},
+
+	showp: function(){
+		var ov = this.ov;
+
+		var img = ov.p.type == 1 ? this.img.dz : this.img.nm;
+		img.dom.width = this.canvas.canvas.height/5;
+		img.dom.height = this.canvas.canvas.height/5;
+
+		img.x = 5;
+		img.y = this.canvas.canvas.height/2 - img.dom.height/2;
+		this.canvas.drawImage(img.dom, img.x, img.y, img.dom.width, img.dom.height);
+	},
+
+	showp1: function(){
+		var ov = this.ov;
+
+		var img = ov.p.p1.type == 1 ? this.img.dz : this.img.nm;
+		img.dom.width = this.canvas.canvas.height/5;
+		img.dom.height = this.canvas.canvas.height/5;
+
+		var ph = img.dom.width*0.7; // 牌高
+		var pw = ph*3/4; // 牌宽
+
+		img.x = 5;
+		this.canvas.drawImage(img.dom, img.x, img.x, img.dom.width, img.dom.height);
+
+		var nu = ov.p.p1.nu;
+		if ( nu >= 5 ) nu = 5;
+		var x = img.x;
+		for ( var i = 0; i < nu; i++ ) {
+			this.canvas.drawPokerBack(img.dom.width + img.x*2, x, ph,'#fff','#67a0d7');
+			x+= 2;
+		}
+		
+		this.getCanvasSty('pnu');
+		this.canvas.fillText(ov.p.p1.nu, img.dom.width + img.x*2 + pw/2 - 10, x + ph/2);
+
+		// 上次出的牌
+		var pp = ov.p.p1.pp;
+		x = img.dom.width + img.x*3 + pw;
+		y = img.dom.height + img.x - ph;
+		var _ph = this._s * 0.7;
+		for ( i in pp ) {
+			var poker = pp[i];
+			this.canvas.drawPokerCard(x, y, _ph, poker[1], poker[0]);
+			x += _ph*3/10;
+		}
+	},
+
+	showp2: function(){
+		var ov = this.ov;
+
+		var img = ov.p.p2.type == 1 ? this.img.dz : this.img.nm;
+		img.dom.width = this.canvas.canvas.height/5;
+		img.dom.height = this.canvas.canvas.height/5;
+
+		var ph = img.dom.width*0.7; // 牌高
+		var pw = ph*3/4; // 牌宽
+
+		img.x = 5;
+		var x = img.x;
+		this.canvas.drawImage(img.dom, this._w - x - img.dom.width, x, img.dom.width, img.dom.height);
+
+		var nu = ov.p.p2.nu;
+		if ( nu >= 5 ) nu = 5;
+		
+		for ( var i = 0; i < nu; i++ ) {
+			this.canvas.drawPokerBack(this._w - x*2 - img.dom.width - pw, x, ph,'#fff','#67a0d7');
+			x+= 2;
+		}
+		
+		this.getCanvasSty('pnu');
+		var tw = this.canvas.measureText(ov.p.p2.nu).width;
+		this.canvas.fillText(ov.p.p2.nu, this._w - x*2 - img.dom.width - pw/2 - tw/2, x + ph/2);
+	
+
+		// 上次出的牌
+		var pp = ov.p.p2.pp;
+		var _ph = this._s * 0.7;
+		x = this._w - ( img.dom.width + img.x*3 + pw + (_ph*3/10 * pp.length + _ph*3/4*3/5) );
+		y = img.dom.height + img.x - ph;
+		for ( i in pp ) {
+			var poker = pp[i];
+			this.canvas.drawPokerCard(x, y, _ph, poker[1], poker[0]);
+			x += _ph*3/10;
+		}
+	},
+
+	getCanvasSty: function(t){
+		switch(t) {
+			case 'pnu':
+				// 剩余牌张数
+				var gradient = this.canvas.createLinearGradient(0,0, 20,0);
+				gradient.addColorStop("0","magenta");
+				gradient.addColorStop("0.5","blue");
+				gradient.addColorStop("1.0","black");
+				// 用渐变填色
+				this.canvas.fillStyle=gradient;
+				this.canvas.font="28px Georgia";
+				break;
+		}
+		
 	},
 
 
