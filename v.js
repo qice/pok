@@ -15,6 +15,11 @@ var v = {
 		select :[]	// 选中的
 	},
 
+	nu: {
+			'2'	: 15, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8' : 8, '9': 9, '10' : 10,
+			'J': 11, 'Q': 12, 'K': 13, 'A': 14, 'O': 20
+		},
+
 	img: {},
 
 	ov: '',
@@ -278,8 +283,25 @@ var v = {
 	cp : function(){
 		if ( this.poker_list.select.length == 0 ) return;
 
-		//if ( !this.cpCheck() ) return;
+		if ( !this.cpCheck() ) return;
 
+		// 出牌
+		var a = [];
+		for ( i in this.poker_list.select ) {
+			a.push( this.poker_list.list[this.poker_list.select[i]] );
+		}
+		this.poker_list.pp = a;
+
+		var s = []; // 剩下的
+		for ( i in this.poker_list.list ) {
+			if ( this.poker_list.select.indexOf(parseInt(i)) == -1 ) {
+				s.push( this.poker_list.list[i] );
+			}
+		}
+
+		this.poker_list.select = [];
+		this.poker_list.list = s;
+		this.reshow();
 	},
 
 	// 牌的类型: 1、顺 2、对 3、三 4、炸 5、三带一 6、三带一对 7、四带两
@@ -348,11 +370,7 @@ var v = {
 
 	// 两张对比 
 	pCompare: function(pk, _pk){
-		var nu = {
-			'2'	: 15, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8' : 8, '9': 9, '10' : 10,
-			'J': 11, 'Q': 12, 'K': 13, 'A': 14, 'O': 20
-		}
-
+		var nu = this.nu;
 		if ( nu[pk[0]] == 20 && nu[_pk[0]] == 20 ) {
 			if ( nu[_pk[1]] == 'h' ) {
 				// 大王
@@ -365,8 +383,94 @@ var v = {
 		return nu[pk[0]] - nu[_pk[0]];
 	},
 
+	// 牌的类型: 1、一张 2、对 3、三不带 4、炸 5、三带一 6、三带一对 7、四带两 8、顺 false
+	cpCheck: function(){
+		var se = this.poker_list.select;
+		var pl = this.poker_list.list;
+		var a  = [];
+		for ( i in se ) {
+			i = se[i];
+			a.push(this.nu[pl[i][0]]);
+		}
 
-	cpCheck: function(i){
+		// 排序
+		a = a.sort(function (x, y) {//比较函数
+		    if (x < y) {
+		        return -1;
+		    } else if (x > y) {
+		        return 1;
+		    } else {
+		        return 0;
+		    }
+		});
+
+		switch ( a.length ) {
+			case 1:
+				return 1;
+
+			case 2:
+				if ( a[0] != a[1] ) return false;
+				return 2;
+
+			case 3:
+				// 三不带
+				if ( a[0] != a[1] || a[1] != a[2] ) return false;
+				return 3;	
+
+			case 4:
+				// 炸
+				if ( a[0] == a[1] && a[1] == a[2] && a[2] == a[3] ) {
+					return 4;
+				} else if ( (a[0] == a[1] && a[1] == a[2]) || (a[1] == a[2] && a[2] == a[3]) ) {
+					// 三带一
+					return 5;
+				}
+				return false;
+
+			case 5:
+				if ( a[0] != a[1] || a[3] != a[4] ) {
+
+					// 看看是不是顺序
+					for ( var i = 0; i < a.length - 1; i++ ) {
+						if ( a[i+1] - a[i] != 1 ) return false;
+					}
+
+				} else if ( (a[0] == a[1] && a[1] == a[2]) || (a[2] == a[3] && a[3] == a[4]) ) {
+					// 三带一对 
+					return 6;
+				}
+
+				// 顺子 return 8
+				return 8;
+
+			case 6:
+				// 四带两 return 7	
+				if ( a[0] != a[1] || a[4] != a[5] ) {
+					
+					for ( var i = 0; i < a.length - 1; i++ ) {
+						if ( a[i+1] - a[i] != 1 ) return false;
+					}
+
+				} else if ( (a[0] == a[1] && a[1] == a[2] && a[2] == a[3]) 
+					|| (a[2] == a[3] && a[3] == a[4] && a[4] == a[5]) ) {
+					return 7;
+				}
+
+				// 顺子 return 8	
+				return 8;
+
+			default:
+				for ( var i = 0; i < a.length - 1; i++ ) {
+					if ( a[i+1] - a[i] != 1 ) return false;
+				}
+
+				// 顺子 return 8	
+				return 8;
+
+		}
+	},
+
+	_cpCheck: function(i){
 		// 上家出牌
 		var prList = [];
 		var se = this.poker_list.select;
