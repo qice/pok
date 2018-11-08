@@ -62,7 +62,7 @@ var v = {
 			var x = e.layerX;
 			var y = e.layerY;
 
-			if ( y >= that._y ) {
+			if ( y >= (that._y - that._s/4) ) {
 				var i = -1;
 
 				// 点牌区域
@@ -83,7 +83,7 @@ var v = {
 					if ( j > -1 ) {
 						that.poker_list.select.splice(j, 1);
 					}else{
-						if (!that.cpCheck(i) ) return;
+						//if (!that.cpCheck(i) ) return;
 
 						that.poker_list.select.push(i);
 					}
@@ -132,7 +132,7 @@ var v = {
 	reshow: function (){
 		this.canvas.clearRect(0,0, this._w, this._h);  
 		// 显示 桌面
-		this.canvas.drawImage(this.img.dt.dom, 0, 0, this.canvas.canvas.width, this.canvas.canvas.height);
+		//this.canvas.drawImage(this.img.dt.dom, 0, 0, this.canvas.canvas.width, this.canvas.canvas.height);
 
 		this.p1();
 
@@ -167,6 +167,19 @@ var v = {
 		img.x = 5;
 		img.y = this.canvas.canvas.height/2 - img.dom.height/2;
 		this.canvas.drawImage(img.dom, img.x, img.y, img.dom.width, img.dom.height);
+
+		// 上次出的牌
+		var pp = ov.p.poker_list.pp;
+		var ph = img.dom.width*0.7;
+		var _ph = this._s * 0.7;
+		x = this._w/2 - pp.length*_ph*3/10;
+		y = img.dom.height + img.x - ph + _ph + 10;
+
+		for ( i in pp ) {
+			var poker = pp[i];
+			this.canvas.drawPokerCard(x, y, this._s, poker[1], poker[0]);
+			x += _ph*3/10;
+		}
 	},
 
 	showp1: function(){
@@ -264,6 +277,8 @@ var v = {
 	// 出牌操作
 	cp : function(){
 		if ( this.poker_list.select.length == 0 ) return;
+
+		//if ( !this.cpCheck() ) return;
 
 	},
 
