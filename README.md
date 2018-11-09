@@ -11,3 +11,4 @@ Poker 斗地主游戏
 
 ![单机测试](https://raw.githubusercontent.com/qice/pok/master/ddz01.png)
 ![单机测试](https://raw.githubusercontent.com/qice/pok/master/ddz02.png)
+![单机测试](https://raw.githubusercontent.com/qice/pok/master/ddz03.png)
