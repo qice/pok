@@ -236,7 +236,7 @@ var v = {
 		var x = img.x;
 		for ( var i = 0; i < nu; i++ ) {
 			this.canvas.drawPokerBack(img.dom.width + img.x*2, x, ph,'#fff','#67a0d7');
-			x+= 2;
+			x+= 3;
 		}
 		
 		this.getCanvasSty('pnu');
@@ -285,13 +285,13 @@ var v = {
 		if ( nu >= 5 ) nu = 5;
 		
 		for ( var i = 0; i < nu; i++ ) {
-			this.canvas.drawPokerBack(this._w - x*2 - img.dom.width - pw, x, ph,'#fff','#67a0d7');
-			x+= 2;
+			this.canvas.drawPokerBack(this._w - img.x*2 - img.dom.width - pw, x, ph,'#fff','#67a0d7');
+			x+= 3;
 		}
 		
 		this.getCanvasSty('pnu');
 		var tw = this.canvas.measureText(ov.p.p2.nu).width;
-		this.canvas.fillText(ov.p.p2.nu, this._w - x*2 - img.dom.width - pw/2 - tw/2, x + ph/2);
+		this.canvas.fillText(ov.p.p2.nu, this._w - img.x*2 - img.dom.width - pw/2 - tw/2, x + ph/2);
 	
 
 		// 上次出的牌
