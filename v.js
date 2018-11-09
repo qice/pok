@@ -117,8 +117,17 @@ var v = {
 	p1: function (){
 		var x = this._x;
 		var y = this._y;
+		var l = this.poker_list.list.length;
+		var maxGap = this._s*1/2; // 牌的宽度 this._s*3/4, 间隔最大为牌宽的一半
 
-		this._gap = (this._w - this._x*2) / (this.poker_list.list.length+1);
+		this._gap = (this._w - this._s) / l;
+		if ( this._gap > maxGap ) {
+			// 太宽了
+			this._gap = maxGap;
+		}
+
+		// 居中
+		x = this._x = (this._w - (this._gap * l + this._s*3/4 - this._gap))/2
 
 		for ( i in this.poker_list.list) {
 			i = parseInt(i);
@@ -153,13 +162,17 @@ var v = {
 		var img = this.img;
 		var gap = this._s/4 + 2;
 
-		img.cp.x = this._w/2 + gap;
-		img.cp.y = this._y - gap - img.cp.dom.height;
-		this.canvas.drawImage(img.cp.dom, img.cp.x, img.cp.y);
+		if ( this.ov.p.status > 0 ) {
+			img.cp.x = this._w/2 + gap;
+			img.cp.y = this._y - gap - img.cp.dom.height;
+			this.canvas.drawImage(img.cp.dom, img.cp.x, img.cp.y);
 
-		img.bc.x = this._w/2 - gap - img.bc.dom.width;
-		img.bc.y = this._y - gap - img.bc.dom.height;
-		this.canvas.drawImage(img.bc.dom, img.bc.x, img.bc.y);
+			if ( this.ov.p.status == 1 ) {
+				img.bc.x = this._w/2 - gap - img.bc.dom.width;
+				img.bc.y = this._y - gap - img.bc.dom.height;
+				this.canvas.drawImage(img.bc.dom, img.bc.x, img.bc.y);
+			}
+		}
 	},
 
 	showp: function(){
@@ -174,17 +187,35 @@ var v = {
 		this.canvas.drawImage(img.dom, img.x, img.y, img.dom.width, img.dom.height);
 
 		// 上次出的牌
-		var pp = ov.p.poker_list.pp;
-		var ph = img.dom.width*0.7;
-		var _ph = this._s * 0.7;
-		x = this._w/2 - pp.length*_ph*3/10;
-		y = img.dom.height + img.x - ph + _ph + 10;
+		var pp = ov.p.pp;
+		var l = pp.length;
+		if ( l > 0 ) {
+			var w = this._w - img.dom.width*2; // 可用宽度
+			var s = this._s * .9; // 显示牌大小
+			var sw= s*3/4; // 牌宽
+			var gap = ( w - sw )/l;
+			if ( gap > sw/2 ) gap = sw/2;
 
-		for ( i in pp ) {
-			var poker = pp[i];
-			this.canvas.drawPokerCard(x, y, this._s, poker[1], poker[0]);
-			x += _ph*3/10;
+			// 居中显示 
+			var y = this._h/2 - s*2/3;
+			var x = (w - ( gap*l + sw - gap ))/2 + img.dom.width;
+			for ( i in pp ) {
+				var poker = pp[i];
+				this.canvas.drawPokerCard(x, y, s, poker[1], poker[0]);
+				x += gap;
+			}
 		}
+		
+		// var ph = img.dom.width*0.7;
+		// var _ph = this._s * 0.7;
+		// x = this._w/2 - pp.length*_ph*3/10;
+		// y = img.dom.height + img.x - ph + _ph + 10;
+
+		// for ( i in pp ) {
+		// 	var poker = pp[i];
+		// 	this.canvas.drawPokerCard(x, y, this._s, poker[1], poker[0]);
+		// 	x += _ph*3/10;
+		// }
 	},
 
 	showp1: function(){
@@ -211,15 +242,28 @@ var v = {
 		this.getCanvasSty('pnu');
 		this.canvas.fillText(ov.p.p1.nu, img.dom.width + img.x*2 + pw/2 - 10, x + ph/2);
 
-		// 上次出的牌
-		var pp = ov.p.p1.pp;
-		x = img.dom.width + img.x*3 + pw;
-		y = img.dom.height + img.x - ph;
-		var _ph = this._s * 0.7;
-		for ( i in pp ) {
-			var poker = pp[i];
-			this.canvas.drawPokerCard(x, y, _ph, poker[1], poker[0]);
-			x += _ph*3/10;
+		if ( ov.p.p1.status == 0 ) {
+			// 上次出的牌
+			var pp = ov.p.p1.pp;
+			x = img.dom.width + img.x*3 + pw;
+			y = img.dom.height + img.x - ph;
+			var _ph = this._s * 0.7;
+			for ( i in pp ) {
+				var poker = pp[i];
+				this.canvas.drawPokerCard(x, y, _ph, poker[1], poker[0]);
+				x += _ph*3/10;
+			}
+		} else {
+			// 出牌中的合计时
+			/*
+			x = img.dom.width + img.x*3 + pw;
+			y = img.dom.height + img.x - ph;
+
+			this.getCanvasSty('pnu');
+			setInterval(function(){
+				this.canvas.fillText(ov.p.p1.nu, img.dom.width + img.x*2 + pw/2 - 10, x + ph/2);
+			}, 1000);
+			*/
 		}
 	},
 
@@ -278,19 +322,47 @@ var v = {
 		
 	},
 
+	over: function(){
+		alert('下一局？');
+		location.reload();
+	},
+
 
 	// 出牌操作
 	cp : function(){
 		if ( this.poker_list.select.length == 0 ) return;
 
-		if ( !this.cpCheck() ) return;
+		var se = this.poker_list.select;
+		var pl = this.poker_list.list;
+		var pp = [];
+		for( i in se ) {
+			pp.push( pl[se[i]] );
+		}
+
+		var r = this.cpCheck(pp)
+		if ( !r ) return;
+
+		// 比较下上家的出牌
+		var p1 = ov.p.p1;
+		var p2 = ov.p.p2;
+		if ( p1.pp.length > 0 ) {
+			if ( r != this.cpCheck(p1.pp) ) return;
+
+			if ( pp[0] <= p1.pp[0] ) return;
+		} else if (this.poker_list.status == 1 && p2.pp.length > 0 ) {
+			// 上上家的
+			if ( r != this.cpCheck(p2.pp) ) return;
+
+			if ( pp[0] <= p2.pp[0] ) return;
+		}
+		
 
 		// 出牌
 		var a = [];
 		for ( i in this.poker_list.select ) {
 			a.push( this.poker_list.list[this.poker_list.select[i]] );
 		}
-		this.poker_list.pp = a;
+		this.ov.p.pp = a;
 
 		var s = []; // 剩下的
 		for ( i in this.poker_list.list ) {
@@ -301,7 +373,20 @@ var v = {
 
 		this.poker_list.select = [];
 		this.poker_list.list = s;
+
+		this.ov.p.status = 0;
+
+		var p2 = this.ov.p.p2;
+		p2.status = 1;
+		p2.pp = [];
+
 		this.reshow();
+
+		if ( this.poker_list.list.length == 0 ) {
+			// 出完了
+			this.over();
+			return ;
+		}
 	},
 
 	// 牌的类型: 1、顺 2、对 3、三 4、炸 5、三带一 6、三带一对 7、四带两
@@ -384,13 +469,10 @@ var v = {
 	},
 
 	// 牌的类型: 1、一张 2、对 3、三不带 4、炸 5、三带一 6、三带一对 7、四带两 8、顺 false
-	cpCheck: function(){
-		var se = this.poker_list.select;
-		var pl = this.poker_list.list;
+	cpCheck: function(pp){
 		var a  = [];
-		for ( i in se ) {
-			i = se[i];
-			a.push(this.nu[pl[i][0]]);
+		for ( i in pp ) {
+			a.push(this.nu[pp[i][0]]);
 		}
 
 		// 排序
@@ -540,6 +622,13 @@ var v = {
 
 	// 不出牌
 	bc: function(){
+		this.ov.p.status = 0;
+
+		var p2 = this.ov.p.p2;
+		p2.status = 1;
+		p2.pp = [];
+
+		this.pp = [];
 		this.poker_list.select = [];
 		this.reshow();
 	}
